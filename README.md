@@ -25,7 +25,7 @@ You can import all these in a single `require_tree` statement and access them vi
 ```
  var app = require('require_tree').require_tree('./lib');
  
- // models.User is no accessable
+ // models.User is now accessable
  var user  = new app.models.User();
  
  // JSON objects are accessed in the same manner
