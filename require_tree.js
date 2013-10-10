@@ -82,9 +82,9 @@ exports.require_tree = function(uPath) {
             continue;
           }
           try {
-            if (name === 'index.js') {
-              o = getPackage(initial((p = parsePath(pwd)).slice(0, p.length - 1)).join(path.sep));
-              _results.push(o[p[p.length - 2]] = extend(o[p[p.length - 2]] || {}, require(fs.realpathSync("" + (initial(file.split(path.sep)).join(path.sep))))));
+            if (name.match(/^index+/)) {
+              o = getPackage(((p = parsePath(pwd)).slice(0, p.length - (p.length > 1 ? 1 : 0))).join(path.sep));
+              _results.push(o = extend(o, require(fs.realpathSync("" + (initial(file.split(path.sep)).join(path.sep))))));
             } else {
               o = (o = getPackage(initial(parsePath(pwd)).join(path.sep))) != null ? o : appendPackages(initial(parsePath(pwd)).join(path.sep));
               _results.push(o[name.split('.').shift()] = require(fs.realpathSync("" + file)));

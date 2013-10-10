@@ -32,7 +32,7 @@ exports.require_tree = (uPath)->
       pkg = pkg[s[d]]
     pkg
   # get a Path from the Package
-  getPackage = (p)=>
+  getPackage = (p)->
     pkg = packages
     for d in [0...(s=parsePath p).length]
       if (f=pkg[s[d]])?
@@ -57,9 +57,9 @@ exports.require_tree = (uPath)->
         else 
           continue if !path.extname(file).match /^\.js+(on)?$/
           try
-            if name == 'index.js'
-              o = getPackage initial( (p=parsePath pwd).slice 0, p.length - 1 ).join path.sep
-              o[p[p.length-2]] = extend (o[p[p.length-2]] || {}), require( fs.realpathSync "#{initial( file.split path.sep ).join path.sep}")
+            if name.match /^index+/
+              o = getPackage ((p=parsePath pwd).slice 0, p.length - (if p.length > 1 then 1 else 0) ).join path.sep
+              o = extend o, require( fs.realpathSync "#{initial( file.split path.sep ).join path.sep}")
             else
               o = if (o = getPackage initial(parsePath pwd).join path.sep)? then o else appendPackages initial(parsePath pwd).join path.sep
               o[name.split('.').shift()] = require fs.realpathSync "#{file}"

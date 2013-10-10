@@ -46,3 +46,5 @@ describe 'require_Tree Test Suite', ->
     (b = require_tree('./test/lib/bar').b).should.be.a 'Object'
     (new b.bClass()).getAFunct.should.be.a 'Function'
     (new b.bClass()).getAFunct().should.equal 'BAR::aFunctValue'
+  it 'should directly load paths that only contain indexes', =>
+    (require_tree "./test/lib/indexOnly").indexOnlyFunct.should.be.a 'Function'
