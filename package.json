@@ -1,0 +1,29 @@
+{
+  "author": "Van Carney <carney.van@gmail.com>",
+  "name": "require_tree",
+  "description": "Package like Module Loading for Nodejs",
+  "version": "0.0.1",
+  "main":"require_tree.js",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "github.com/vancarney/require_tree.git"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "coffee-script": "~1.6.3",
+    "mocha": "~1.12.0",
+    "chai": "~1.7.2",
+    "docco": "~0.6.2"
+  },
+  "homepage": "http://github.com/vancarney/require_tree.git",
+  "scripts": {
+    "test": "cake test"
+  }
+}
