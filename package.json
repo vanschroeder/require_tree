@@ -1,7 +1,8 @@
 {
   "author": "Van Carney <carney.van@gmail.com>",
   "name": "require_tree",
-  "description": "Package like Module Loading for Nodejs",
+  "description": "Recursive Package like Module and JSON Loading for Nodejs",
+  "keywords": "recursive", "require", "tree", "model", "filesystem", "js", "json", "import", "package", "module", "loading", "export"
   "version": "0.3.2",
   "main":"require_tree.js",
   "licenses": [
@@ -22,7 +23,7 @@
     "chai": "~1.7.2",
     "docco": "~0.6.2"
   },
-  "homepage": "http://github.com/vancarney/require_tree.git",
+  "homepage": "http://vancarney.github.io/require_tree/",
   "scripts": {
     "test": "cake test"
   }

@@ -1,10 +1,15 @@
 require_tree(path [,locals])
 ============
 
-Recursive JS and JSON Module Loading for NodeJS
+Recursive Package like Module and JSON Loading for Nodejs
 
 [![Build Status](https://travis-ci.org/vancarney/require_tree.png)](https://travis-ci.org/vancarney/require_tree)
 
+Installation
+-----------
+```
+	npm install require_tree
+```
 
 Basic Usage
 -----------
