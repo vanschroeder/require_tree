@@ -79,15 +79,15 @@
 <p>By passing a JSObject to the <code>locals</code> param, You can set that Object for access from <code>module.parent.exports.locals</code> in your loaded Module’s scope.</p>
 
 <p>index.js:
-~~~
+<pre><code>
 var myMods = require_tree(‘lib’, {“myArray”:[1,2,3,4]});
-~~~ </p>
+</code></pre>
 
 <p>lib/myMod.js:
-~~~
+<pre><code>
  var passedArray = module.parent.exports.locals.myArray;
  console.log(passedArray);
-~~~</p>
+</code></pre>
 
 <p><em>Note</em>: This value does not pass downrecursively, it stays at the top level of the heirarchy. So a JS file nested 2 levels deep would need to reference <code>module.parent.parent.parent</code>, or your modules will need to explicitely pass the locals via module.exports.</p>
 
@@ -110,7 +110,7 @@ This functionality allows you to create multiple index and data files to selecti
 The intent here is to have build a config file based on the user environment much as we would build an application config using a <code>configure</code> script</p>
 
 <p>lib/config.js
-~~~
+<pre><code>
 (function(global)
 {
   // attempt to get passed data from locals Object
@@ -118,14 +118,14 @@ The intent here is to have build a config file based on the user environment muc
   // use require_tree to load a given structure
   global.config = require(‘require_tree’).require_tree( ‘../conf/condition_’ +  conditionValue);
 })(exports);
-~~~</p>
+</code></pre></p>
 
 <p>index.js:
-~~~
+<pre><code>
 config = require_tree(“lib”, {“condition”:2}).config;
 // config will now contain the dynmically generated JS object structure
 console.log(config);
-~~~</p>
+</code></pre></p>
 
 <h2 id="accessing-the-package-structure-from-loaded-modules">Accessing the Package Structure From Loaded Modules</h2>
 
