@@ -2,7 +2,7 @@
   "author": "Van Carney <carney.van@gmail.com>",
   "name": "require_tree",
   "description": "Package like Module Loading for Nodejs",
-  "version": "0.2.1",
+  "version": "0.3.2",
   "main":"require_tree.js",
   "licenses": [
     {

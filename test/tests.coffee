@@ -5,12 +5,19 @@ describe 'require_Tree Test Suite', ->
   it 'should exist', =>
     require_tree.should.be.a 'Function'
   it 'should load tree', =>
-    {foo, bar, a} = require_tree "./test/lib"
-    (@foo = foo).a.aClass.should.be.a 'Function'
-    (@bar = bar).a.aClass.should.be.a 'Function'
-    @bar.b.bClass.should.be.a 'Function'
-    (@a = a).aClass.should.be.a 'Function'
+    exports.myValue = "true"
+    {foo, bar, conditions, a, multiIndex} = require_tree "./test/lib", {condition:2, test:"foo"}
+    @foo = foo
+    @bar = bar
+    @a = a
+    @multiIndex = multiIndex
+    @conditions = conditions
   it 'should have Objects', =>
+    @foo.a.aClass.should.be.a 'Function'
+    @bar.a.aClass.should.be.a 'Function'
+    @bar.b.bClass.should.be.a 'Function'
+    @a.aClass.should.be.a 'Function'
+    @conditions.should.be.a "Object"
     (new @bar.a.aClass).should.be.a 'Object'
     (new @bar.b.bClass).should.be.a 'Object'
     (new @foo.a.aClass).should.be.a 'Object'
@@ -33,7 +40,8 @@ describe 'require_Tree Test Suite', ->
     (@bar.baz).bazFunc.should.be.a 'Function'
   it 'should have Functions that return values', =>
     (@foo).fooFunc().should.equal 'FOO::fooFunc'
-    (@bar.baz).bazFunc().should.equal 'BAR::BAZ::bazFunct'
+  it 'should have locals passed to Nested Objects', =>
+    (@bar.baz).bazFunc().should.equal 'BAR::BAZ::bazFunct locals.test: [foo]'
   it 'should include JSON Objects', =>
     (@bar.baz).data.should.be.a 'Object'
     (@bar.baz).data.a.should.equal 'Value A'
@@ -48,3 +56,9 @@ describe 'require_Tree Test Suite', ->
     (new b.bClass()).getAFunct().should.equal 'BAR::aFunctValue'
   it 'should directly load paths that only contain indexes', =>
     (require_tree "./test/lib/indexOnly").indexOnlyFunct.should.be.a 'Function'
+  it 'should merge multipple types of indexes on the same path', =>
+    @multiIndex.multiIndexFunct.should.be.a 'Function'
+    @multiIndex.value.should.equal 'multiIndex'
+  it 'should conditionally load Paths', =>
+    @conditions.methods.should.be.a 'Object'
+    @conditions.methods.value.should.equal false

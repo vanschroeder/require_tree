@@ -2,8 +2,12 @@
 # (c)2013 Van Carney
 # Licensed under the MIT License
 #### Package like Module Loading for Nodejs
-exports.require_tree = (uPath)->
+exports.require_tree = (uPath, locals)->
   'use strict'
+  # just return if there is nothing set in the uPath param
+  return null if !uPath
+  # define locals for access by loaded Child Modules
+  module.exports.locals = locals || {}
   fs    = require 'fs'
   path  = require 'path'
   # retrieves all but the last value of a given array
@@ -18,13 +22,13 @@ exports.require_tree = (uPath)->
   # the root path to the package we are importing -- we use this to filter
   _root = initial(b = uPath.split path.sep).join path.sep
   # Our packages object that we will build and return 
-  (packages = {})[_ns = b.pop()] = {}
+  exports.packages = (packages = {})[_ns = b.pop()] = {}
   # returns the path parts as an array
   parsePath = (p)-> p.replace(new RegExp("^\\.?(\\#{path.sep})"),'').split path.sep
   # returns a path woth the _root filtered out
   getPwd = (p)->
     p.replace new RegExp("^(\\.\\#{path.sep})?#{(parsePath _root).join '\\'+path.sep}\\#{path.sep}"), ''
-  # add a path to the Package
+  # add a given path to the Package
   appendPackages = (p)->
     pkg = packages
     for d in [0...(s=parsePath p).length]
@@ -45,26 +49,37 @@ exports.require_tree = (uPath)->
     if (list = fs.readdirSync dir).length
       for name in list
         continue if name.match /^\./
+        # full path to file
         file = path.join dir, name
+        # package path
         pwd = getPwd file
         try
+          # attempt to get stats on the file
           stat = fs.statSync file
         catch err
           stat = null
         if stat?.isDirectory()
+          # add this directory to our Package
           appendPackages pwd
+          # walk this directory
           walker file
         else 
+          # we only handle JS and JSON files
           continue if !path.extname(file).match /^\.js+(on)?$/
           try
             if name.match /^index+/
+              # if we have an index, we will build this directly into the current package
               o = getPackage ((p=parsePath pwd).slice 0, p.length - (if p.length > 1 then 1 else 0) ).join path.sep
-              o = extend o, require( fs.realpathSync "#{initial( file.split path.sep ).join path.sep}")
+              # composite this Package (FYI: will join index.json and index.js into one package item)
+              o = extend o, require fs.realpathSync "#{file}"
             else
+              # we will append a new Package for each unique file name (excluding ext)
               o = if (o = getPackage initial(parsePath pwd).join path.sep)? then o else appendPackages initial(parsePath pwd).join path.sep
-              o[name.split('.').shift()] = require fs.realpathSync "#{file}"
+              # add the module or JSON struct to the current Package
+              o[name.split('.').shift()] = extend o[name.split('.').shift()] || {}, require fs.realpathSync "#{file}"
           catch e
             console.error "Error requiring #{file}: #{e.message}"
+  # walk the given path
   walker uPath
   # returns the provided Namespace and it's contents
   packages[_ns]
