@@ -28,37 +28,111 @@
         </ul>
       </header>
       <section>
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+        
+<h1>require_tree(path [,locals])</h1>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>Recursive JS and JSON Module Loading for NodeJS</p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+<p><a href="https://travis-ci.org/vancarney/require_tree"><img src="https://travis-ci.org/vancarney/require_tree.png" alt="Build Status" title="" /></a></p>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<h2>Basic Usage</h2>
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<p>Given a directory structure as follows</p>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p><code>
+- lib/
+  - models/
+    - User.js
+  - controllers/
+    - Login.js
+  - utils/
+    - index.js
+    - specialUtility.js
+  - config.json
+</code></p>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<p>You can import all these in a single <code>require_tree</code> statement and access them via hash syntax like a traditional OO Package</p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>```
+ var app = require('require<em>tree').require</em>tree('lib');</p>
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<p>// models.User is now accessable
+ var user  = new app.models.User();</p>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>// JSON objects are accessed in the same manner
+ var configVal = app.config.myValue;</p>
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<p>// index files are appended directly to the local root
+ app.utils.myIndexFunction();</p>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<p>// other files are appended within the same scope
+ var util = new app.utils.specialUtility();
+```</p>
+
+<h2>Passing Data</h2>
+
+<p>By passing a JSObject to the <code>locals</code> param, You can set that Object for access from <code>module.parent.exports.locals</code> in your loaded Module's scope.</p>
+
+<p>index.js:
+<code>
+var myMods = require_tree('lib', {'myArray':[1,2,3,4]});
+</code> </p>
+
+<p>lib/myMod.js:
+<code>
+ var passedArray = module.parent.exports.locals.myArray;
+ console.log(passedArray);
+</code></p>
+
+<p><em>Note</em>: This value does not pass downrecursively, it stays at the top level of the heirarchy. So a JS file nested 2 levels deep would need to reference <code>module.parent.parent.parent</code>, or your modules will need to explicitely pass the locals via module.exports.</p>
+
+<h2>Building Data Structures</h2>
+
+<p><code>require_tree</code> allows you to import JSON documents and treats each index file as a root element.
+This functionality allows you to create multiple index and data files to selectively build complex JSON data sets from static files.</p>
+
+<p><code>
+- conf/
+  - condition_1/
+    - index.js
+  - condition_2/
+    - index.js
+- lib/
+  - config.js
+- index.js
+</code></p>
+
+<p>In the above diagram, we see a <code>configure.js</code> file and a <code>conf</code> structure.
+The intent here is to have build a config file based on the user environment much as we would build an application config using a <code>configure</code> script</p>
+
+<p>lib/config.js
+<code>
+(function(global)
+{
+  // attempt to get passed data from locals Object
+  var conditionValue = module.parent.exports.locals.condition || 2;
+  // use require_tree to load a given structure
+  global.config = require('require_tree').require_tree( '../conf/condition_' +  conditionValue);
+})(exports);
+</code></p>
+
+<p>index.js:
+<code>
+config = require_tree('lib', {'condition':2}).config;
+// config will now contain the dynmically generated JS object structure
+console.log(config);
+</code></p>
+
+<h2>Accessing the Package Structure From Loaded Modules</h2>
+
+<p>While <code>require_tree</code> returns the loaded package Structure to the caller, it can be useful to be aware of the Package Structure from within a loaded module
+<code>require_tree</code> exports the packages as <code>exports.packages</code> and can be accessed in the same manner as <code>locals</code> described above.</p>
+
+<h2>What Next?</h2>
+
+<p>With recursive Module loading the ability to pass data and to create programmaticly defined structures on the fly, it seems only logical to add in module defined flow control and introspection,
+However, what those would mean for performance, usability and whether or not such features are appropriate for a module loader need some mulling over. So feel free to chime in with ideas, suggestions or pull requests.</p>
+        
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/vancarney">vancarney</a></p>
