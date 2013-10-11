@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>require_tree</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap for-h1">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1>require_tree</h1>
+<p>(c)2013 Van Carney
+Licensed under the MIT License</p>
+<h3>Package like Module Loading for Nodejs</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>exports.<span class="function"><span class="title">require_tree</span></span> = (uPath, locals)-&gt;
+  <span class="string">'use strict'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>just return if there is nothing set in the uPath param</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> !uPath</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>define locals for access by loaded Child Modules</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  module.exports.locals = locals || {}
+  fs    = require <span class="string">'fs'</span>
+  path  = require <span class="string">'path'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>retrieves all but the last value of a given array</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="function"><span class="title">initial</span></span> = (a)-&gt; a.splice <span class="number">0</span>, a.length - <span class="number">1</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>composites two or more Objects</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="function"><span class="title">extend</span></span> = (obj)-&gt;
+    <span class="keyword">for</span> o <span class="keyword">in</span> Array.prototype.slice.call arguments, <span class="number">1</span>
+      <span class="keyword">if</span> o?
+        <span class="keyword">for</span> x <span class="keyword">of</span> o
+          obj[x] = o[x]
+    obj</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>the root path to the package we are importing -- we use this to filter</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  _root = initial(b = uPath.split path.sep).join path.sep</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Our packages object that we will build and return </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  exports.packages = (packages = {})[_ns = b.pop()] = {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>returns the path parts as an array</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="function"><span class="title">parsePath</span></span> = (p)-&gt; p.replace(<span class="keyword">new</span> RegExp(<span class="string">"^\\.?(\\<span class="subst">#{path.sep}</span>)"</span>),<span class="string">''</span>).split path.sep</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>returns a path woth the _root filtered out</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="function"><span class="title">getPwd</span></span> = (p)-&gt;
+    p.replace <span class="keyword">new</span> RegExp(<span class="string">"^(\\.\\<span class="subst">#{path.sep}</span>)?<span class="subst">#{(parsePath _root).join '\\'+path.sep}</span>\\<span class="subst">#{path.sep}</span>"</span>), <span class="string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>add a given path to the Package</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="function"><span class="title">appendPackages</span></span> = (p)-&gt;
+    pkg = packages
+    <span class="keyword">for</span> d <span class="keyword">in</span> [<span class="number">0.</span>..(s=parsePath p).length]
+      pkg[s[d]] ?= {}
+      pkg = pkg[s[d]]
+    pkg</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>get a Path from the Package</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="function"><span class="title">getPackage</span></span> = (p)-&gt;
+    pkg = packages
+    <span class="keyword">for</span> d <span class="keyword">in</span> [<span class="number">0.</span>..(s=parsePath p).length]
+      <span class="keyword">if</span> (f=pkg[s[d]])?
+        pkg = f
+      <span class="keyword">else</span>
+        <span class="keyword">return</span> <span class="literal">null</span>
+    pkg</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>taverse the given Path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="function"><span class="title">walker</span></span> = (dir)=&gt;
+    <span class="keyword">if</span> (list = fs.readdirSync dir).length
+      <span class="keyword">for</span> name <span class="keyword">in</span> list
+        <span class="keyword">continue</span> <span class="keyword">if</span> name.match <span class="regexp">/^\./</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>full path to file</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        file = path.join dir, name</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>package path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        pwd = getPwd file
+        <span class="keyword">try</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>attempt to get stats on the file</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          stat = fs.statSync file
+        <span class="keyword">catch</span> err
+          stat = <span class="literal">null</span>
+        <span class="keyword">if</span> stat?.isDirectory()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>add this directory to our Package</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          appendPackages pwd</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>walk this directory</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          walker file
+        <span class="keyword">else</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>we only handle JS and JSON files</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          <span class="keyword">continue</span> <span class="keyword">if</span> !path.extname(file).match <span class="regexp">/^\.js+(on)?$/</span>
+          <span class="keyword">try</span>
+            <span class="keyword">if</span> name.match <span class="regexp">/^index+/</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>if we have an index, we will build this directly into the current package</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>              o = getPackage ((p=parsePath pwd).slice <span class="number">0</span>, p.length - (<span class="keyword">if</span> p.length &gt; <span class="number">1</span> <span class="keyword">then</span> <span class="number">1</span> <span class="keyword">else</span> <span class="number">0</span>) ).join path.sep</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>composite this Package (FYI: will join index.json and index.js into one package item)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>              o = extend o, require fs.realpathSync <span class="string">"<span class="subst">#{file}</span>"</span>
+            <span class="keyword">else</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>we will append a new Package for each unique file name (excluding ext)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>              o = <span class="keyword">if</span> (o = getPackage initial(parsePath pwd).join path.sep)? <span class="keyword">then</span> o <span class="keyword">else</span> appendPackages initial(parsePath pwd).join path.sep</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>add the module or JSON struct to the current Package</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>              o[name.split(<span class="string">'.'</span>).shift()] = extend o[name.split(<span class="string">'.'</span>).shift()] || {}, require fs.realpathSync <span class="string">"<span class="subst">#{file}</span>"</span>
+          <span class="keyword">catch</span> e
+            console.error <span class="string">"Error requiring <span class="subst">#{file}</span>: <span class="subst">#{e.message}</span>"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>walk the given path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  walker uPath</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>returns the provided Namespace and it&#39;s contents</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  packages[_ns]</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
