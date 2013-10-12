@@ -50,13 +50,16 @@ Options
 -----------
 
 the `options` object accepts two properties:
-*preserve_filenames*: A boolean value instructing require_tree to preserve the filename in the package path structure the default value is false
-*locals*: A user defined JS Object that will be made avialable to loaded modules
+
+> **preserve_filenames**: A boolean value instructing require_tree to preserve the filename in the package path structure. The default value is `false`
+
+> **locals**: A user defined JS Object that will be made avialable to loaded modules
+
 
 Passing Data
 -----------
 
-By passing a JSObject to the `locals` param, You can set that Object for access from `module.parent.exports.locals` in your loaded Module's scope.
+By passing a JS Object to the `locals` param of the`options` object, you can set that Object for access from `module.parent.exports.locals` in your loaded Module's scope.
 
 index.js:
 ```
@@ -69,8 +72,8 @@ lib/myMod.js:
  console.log(passedArray);
 ```
 
-*Note*: If you make nested `require_tree` calls  you will need to explicitely pass the locals object to the options param of the nested call
-
+*Note*: If you make nested `require_tree` calls  you will need to explicitely pass the `module.parent.exports.locals` and `module.parent.exports.packages` objects to the `locals` param of the options object for the nested call.
+See the `Options` section above.
 
 
 Building Data Structures
@@ -115,7 +118,9 @@ Accessing the Package Structure From Loaded Modules
 -----------
 
 While `require_tree` returns the loaded package Structure to the caller, it can be very useful to be aware of the Package Structure from within a loaded module
-`require_tree` exports the packages as `exports.packages` and can be accessed in the same manner as `locals` described above. Try using this instead of require or further`require_tree` calls.
+`require_tree` exports the packages as `exports.packages` and can be accessed in the same manner as `locals` described above. 
+
+Try using the `module.parent.exports.packages` hash instead of `require` or further `require_tree` calls.
 
 example:
 ```
@@ -128,6 +133,10 @@ example:
 })(exports)
 
 ```
+
+*Note*: Each call to `require_tree` creates a new Module Scope, so any 'sub-trees' created will not be able to access the containing `require_tree` scope.
+To get around this and allow dynamically loaded subtrees to access loaded packages and data, put your current `module.parent.exports.locals` and `module.parent.exports.packages` hashes into the `locals` param of the `options` hash.
+Review the `Passing Data` section above for more info.
 
 
 What Next?
