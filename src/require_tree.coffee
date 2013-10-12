@@ -1,13 +1,13 @@
 ## require_tree
 # (c)2013 Van Carney
 # Licensed under the MIT License
-#### Package like Module Loading for Nodejs
-exports.require_tree = (uPath, locals)->
+#### Recursive Package like Module and JSON Loading for NodeJS
+exports.require_tree = (uPath, options={})->
   'use strict'
   # just return if there is nothing set in the uPath param
   return null if !uPath
   # define locals for access by loaded Child Modules
-  module.exports.locals = locals || {}
+  module.exports.locals = options.locals || {}
   fs    = require 'fs'
   path  = require 'path'
   # retrieves all but the last value of a given array
@@ -28,7 +28,7 @@ exports.require_tree = (uPath, locals)->
   # returns a path woth the _root filtered out
   getPwd = (p)->
     p.replace new RegExp("^(\\.\\#{path.sep})?#{(parsePath _root).join '\\'+path.sep}\\#{path.sep}"), ''
-  # add a given path to the Package
+  # adds a given path to the Package
   appendPackages = (p)->
     pkg = packages
     for d in [0...(s=parsePath p).length]
@@ -44,7 +44,7 @@ exports.require_tree = (uPath, locals)->
       else
         return null
     pkg
-  # taverse the given Path
+  # traverse the given Path
   walker = (dir)=>
     if (list = fs.readdirSync dir).length
       for name in list
@@ -67,16 +67,23 @@ exports.require_tree = (uPath, locals)->
           # we only handle JS and JSON files
           continue if !path.extname(file).match /^\.js+(on)?$/
           try
-            if name.match /^index+/
-              # if we have an index, we will build this directly into the current package
+            # detect path formatting -- default is to ditch the filenames
+            if !options.preserve_filenames
               o = getPackage ((p=parsePath pwd).slice 0, p.length - (if p.length > 1 then 1 else 0) ).join path.sep
-              # composite this Package (FYI: will join index.json and index.js into one package item)
+              # composite this Package (FYI: will join all.json and .js file contents into one package item)
               o = extend o, require fs.realpathSync "#{file}"
             else
-              # we will append a new Package for each unique file name (excluding ext)
-              o = if (o = getPackage initial(parsePath pwd).join path.sep)? then o else appendPackages initial(parsePath pwd).join path.sep
-              # add the module or JSON struct to the current Package
-              o[name.split('.').shift()] = extend o[name.split('.').shift()] || {}, require fs.realpathSync "#{file}"
+              # then we keep file names in the package path structure
+              if name.match /^index+/
+                # if we have an index, we will build this directly into the current package
+                o = getPackage ((p=parsePath pwd).slice 0, p.length - (if p.length > 1 then 1 else 0) ).join path.sep
+                # composite this Package (FYI: will join index.json and index.js into one package item)
+                o = extend o, require fs.realpathSync "#{file}"
+              else
+                # we will append a new Package for each unique file name (excluding ext)
+                o = if (o = getPackage initial(parsePath pwd).join path.sep)? then o else appendPackages initial(parsePath pwd).join path.sep
+                # add the module or JSON structure to the current Package
+                o[name.split('.').shift()] = extend o[name.split('.').shift()] || {}, require fs.realpathSync "#{file}"
           catch e
             console.error "Error requiring #{file}: #{e.message}"
   # walk the given path

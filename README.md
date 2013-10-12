@@ -1,7 +1,7 @@
-require_tree(path [,locals])
+require_tree(path [,options])
 ============
 
-Recursive Package like Module and JSON Loading for Nodejs
+Recursive Package like Module and JSON Loading for NodeJS
 
 [![Build Status](https://travis-ci.org/vancarney/require_tree.png)](https://travis-ci.org/vancarney/require_tree)
 
@@ -46,6 +46,13 @@ You can import all these in a single `require_tree` statement and access them vi
  var util = new app.utils.specialUtility();
 ```
 
+Options
+-----------
+
+the `options` object accepts two properties:
+*preserve_filenames*: A boolean value instructing require_tree to preserve the filename in the package path structure the default value is false
+*locals*: A user defined JS Object that will be made avialable to loaded modules
+
 Passing Data
 -----------
 
@@ -53,7 +60,7 @@ By passing a JSObject to the `locals` param, You can set that Object for access 
 
 index.js:
 ```
-var myMods = require_tree('lib', {"myArray":[1,2,3,4]});
+var myMods = require_tree('lib', {locals:{"myArray":[1,2,3,4]}});
 ``` 
 
 lib/myMod.js:
@@ -62,7 +69,7 @@ lib/myMod.js:
  console.log(passedArray);
 ```
 
-*Note*: This value does not pass downrecursively, it stays at the top level of the heirarchy. So a JS file nested 2 levels deep would need to reference `module.parent.parent.parent`, or your modules will need to explicitely pass the locals via module.exports.
+*Note*: If you make nested `require_tree` calls  you will need to explicitely pass the locals object to the options param of the nested call
 
 
 
@@ -92,14 +99,14 @@ lib/config.js
 {
 	// attempt to get passed data from locals Object
 	var conditionValue = module.parent.exports.locals.condition || 2;
-	// use require_tree to load a given structure
-	global.config = require('require_tree').require_tree( '../conf/condition_' +  conditionValue);
+	// use require_tree to load a given structure -- note that we pass in the locals object in the options for the new sub-tree
+	global.config = require('require_tree').require_tree( '../conf/condition_' +  conditionValue, {locals{module.parent.exports.locals}});
 })(exports);
 ```
 
 index.js:
 ```
-config = require_tree("lib", {"condition":2}).config;
+config = require_tree("lib", {locals:{"condition":2}});
 // config will now contain the dynmically generated JS object structure
 console.log(config);
 ```
@@ -107,8 +114,20 @@ console.log(config);
 Accessing the Package Structure From Loaded Modules
 -----------
 
-While `require_tree` returns the loaded package Structure to the caller, it can be useful to be aware of the Package Structure from within a loaded module
-`require_tree` exports the packages as `exports.packages` and can be accessed in the same manner as `locals` described above.
+While `require_tree` returns the loaded package Structure to the caller, it can be very useful to be aware of the Package Structure from within a loaded module
+`require_tree` exports the packages as `exports.packages` and can be accessed in the same manner as `locals` described above. Try using this instead of require or further`require_tree` calls.
+
+example:
+```
+(function(global)
+{
+	var otherObjectRef = module.parent.exports.packages.path.to.other.Object;
+	global.myModule = function() {
+		this.myRefInstance = new otherObjectRef();
+	}
+})(exports)
+
+```
 
 
 What Next?

@@ -32,7 +32,7 @@ exts='coffee|jade'
 coffeeCallback=()->
 # Callback From 'docco'
 doccoCallback=()->
-
+  exec "rm -rf ../require_tree_pages/docs; mv docs ../require_tree_pages"
 # Begin Tasks
 # ## *build*
 # Compiles Sources
@@ -55,9 +55,9 @@ docs = ()->
   # From Module 'docco'
   #
   if (moduleExists 'docco') && paths? && paths.coffee?
-    walk paths.coffee[1], (err, paths) ->
+    walk paths.coffee[1], (err, paths) =>
       try
-        launch 'docco', paths, doccoCallback()
+        launch 'docco', paths, doccoCallback
       catch e
         error e
 
