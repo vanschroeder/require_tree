@@ -66,7 +66,8 @@ Methods
 The following `methods` are accessable from both the returned `package` structure and the `module.parent.exports`
 
 
-### getTree(path) 
+**getTree(path)**
+
 Returns a given `package` and it\'s descendants. Accepts both hash and path syntax
 
 *example:*
@@ -81,7 +82,8 @@ console.log( module.parent.exports.getTree('models') );
 ```
 
 
-### addTree(path)
+**addTree(path)**
+
 Recursively loads a new directory structure into the `package` structure of the current scope
 
 *example:*
@@ -95,7 +97,8 @@ tree.require_tree.addTree('otherLib');
 module.parent.exports.addTree('otherLib');
 ```
 
-### extendTree(object)
+**extendTree(object)**
+
 Merges a given `package` and it\'s descendants with the existing `package` structure. 
 
 *example:*
@@ -111,7 +114,8 @@ eTree = require('require_tree').require_tree('lib2');
 module.parent.exports.extendTree(eTree);
 ```
 
-### removeTree(path)
+**removeTree(path)**
+
 Removes a given `package` and it\'s descendants from the `package` strucure. Accepts both hash and path syntax. 
 
 *Note*: This will not remove loaded Modules from the Module Cache.
