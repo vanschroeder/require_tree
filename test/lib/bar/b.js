@@ -9,7 +9,8 @@
 	};
 	
 	global.bClass.prototype.getAFunct = function() {
-		return (new module.parent.exports.packages.aClass()).aFunct();
+		var aClass = module.parent.exports.getPackage('foo').aClass;
+		return new aClass().aFunct();
 	};
 	
 	return global.bClass;

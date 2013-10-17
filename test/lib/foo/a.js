@@ -1,5 +1,4 @@
 function aClass() {
-	return "FOO::aClassValue";
 };
 	
 aClass.prototype.aFunct = function() {

@@ -4,8 +4,6 @@
 #### Recursive Package like Module and JSON Loading for NodeJS
 exports.require_tree = (uPath, options={})->
   'use strict'
-  # just return if there is nothing set in the uPath param
-  return null if !uPath
   # define locals for access by loaded Child Modules
   module.exports.locals = options.locals || {}
   fs    = require 'fs'
@@ -20,16 +18,16 @@ exports.require_tree = (uPath, options={})->
           obj[x] = o[x]
     obj
   # the root path to the package we are importing -- we use this to filter
-  _root = initial(b = uPath.split path.sep).join path.sep
+  _root = uPath.split(path.sep).join path.sep
   # Our packages object that we will build and return 
-  exports.packages = (packages = {})[_ns = b.pop()] = {}
+  module.exports.packages = packages = require_tree:{}
   # returns the path parts as an array
   parsePath = (p)-> p.replace(new RegExp("^\\.?(\\#{path.sep})"),'').split path.sep
   # returns a path woth the _root filtered out
   getPwd = (p)->
     p.replace new RegExp("^(\\.\\#{path.sep})?#{(parsePath _root).join '\\'+path.sep}\\#{path.sep}"), ''
   # adds a given path to the Package
-  appendPackages = (p)->
+  appendPackage = (p)->
     pkg = packages
     for d in [0...(s=parsePath p).length]
       pkg[s[d]] ?= {}
@@ -42,7 +40,7 @@ exports.require_tree = (uPath, options={})->
       if (f=pkg[s[d]])?
         pkg = f
       else
-        return null
+        return null if s[d].length
     pkg
   # traverse the given Path
   walker = (dir)=>
@@ -56,11 +54,12 @@ exports.require_tree = (uPath, options={})->
         try
           # attempt to get stats on the file
           stat = fs.statSync file
-        catch err
-          stat = null
+        catch e
+          throw new Error e
+          return false
         if stat?.isDirectory()
           # add this directory to our Package
-          appendPackages pwd
+          appendPackage pwd
           # walk this directory
           walker file
         else 
@@ -69,24 +68,51 @@ exports.require_tree = (uPath, options={})->
           try
             # detect path formatting -- default is to ditch the filenames
             if !options.preserve_filenames
-              o = getPackage ((p=parsePath pwd).slice 0, p.length - (if p.length > 1 then 1 else 0) ).join path.sep
               # composite this Package (FYI: will join all.json and .js file contents into one package item)
-              o = extend o, require fs.realpathSync "#{file}"
+              o = extend (getPackage initial(pwd.split path.sep).join path.sep), require fs.realpathSync "#{file}"
             else
               # then we keep file names in the package path structure
               if name.match /^index+/
                 # if we have an index, we will build this directly into the current package
                 o = getPackage ((p=parsePath pwd).slice 0, p.length - (if p.length > 1 then 1 else 0) ).join path.sep
                 # composite this Package (FYI: will join index.json and index.js into one package item)
-                o = extend o, require fs.realpathSync "#{file}"
+                o = extend o, r = require fs.realpathSync "#{file}" 
               else
                 # we will append a new Package for each unique file name (excluding ext)
-                o = if (o = getPackage initial(parsePath pwd).join path.sep)? then o else appendPackages initial(parsePath pwd).join path.sep
+                o = if (o = getPackage initial(pwd.split path.sep).join path.sep)? then o else appendPackage (parsePath pwd).join path.sep
                 # add the module or JSON structure to the current Package
                 o[name.split('.').shift()] = extend o[name.split('.').shift()] || {}, require fs.realpathSync "#{file}"
           catch e
-            console.error "Error requiring #{file}: #{e.message}"
-  # walk the given path
-  walker uPath
-  # returns the provided Namespace and it's contents
-  packages[_ns]
+            throw new Error e
+            return false
+    true
+  # packages getPackage method for consumptions by caller
+  packages.require_tree.getPackage = 
+  # exports getPackage for loaded module consumptions
+  exports.getPackage = (p)=>
+    getPackage "#{(p ?= '.').replace /\./, path.sep}"
+  # packages addTree method for consumptions by caller
+  packages.require_tree.addTree =
+  # exports addTree for loaded module consumptions
+  exports.addTree = (p) =>
+    _oR = _root
+    _root = initial(b = p.split path.sep).join path.sep
+    packages[_ns = b]  ?= (packages[_ns = b] = {})
+    if walker p
+      _root = _oR
+      return exports.packages = packages
+    _root = _oR
+    return false
+  # packages removeTree method for consumptions by caller
+  packages.require_tree.removeTree =
+  # exports removeTree for loaded module consumptions
+  exports.removeTree = (p) =>
+    pkg = getPackage initial(s=p.replace(/\./g,path.sep).split path.sep).join path.sep
+    try
+      delete pkg[s[s.length-1]] if pkg[s[s.length-1]]
+    catch e
+      throw new Error e
+  # walk the given path if uPath is set
+  walker uPath, null, null if uPath?
+  # returns the packaged contents
+  packages
