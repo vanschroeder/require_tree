@@ -1,4 +1,4 @@
-require_tree(path [,options])
+require_tree([path], [options])
 ============
 
 Recursive Package like Module and JSON Loading for NodeJS
@@ -17,64 +17,156 @@ Basic Usage
 Given a directory structure as follows
 
 ```
-- lib/
-	- models/
-		- User.js
-	- controllers/
-		- Login.js
-	- utils/
-		- index.js
-		- specialUtility.js
-	- config.json
+	- lib/
+		- models/
+			- User.js
+		- controllers/
+			- Login.js
+		- utils/
+			- index.js
+			- specialUtility.js
+		- config.json
 ```
 
 You can import all these in a single `require_tree` statement and access them via hash syntax like a traditional OO Package
 
 ```
- var app = require('require_tree').require_tree('lib');
+	var app = require('require_tree').require_tree('lib');
  
- // models.User is now accessable
- var user  = new app.models.User();
+	// models.User is now accessable
+ 	var user  = new app.models.User();
  
- // JSON objects are accessed in the same manner
- var configVal = app.config.myValue;
+	// JSON objects are accessed in the same manner
+	var configVal = app.config.myValue;
  
- // index files are appended directly to the local root
- app.utils.myIndexFunction();
+	// index files are appended directly to the local root
+	app.utils.myIndexFunction();
  
- // other files are appended within the same scope
- var util = new app.utils.specialUtility();
+	// other files are appended within the same scope
+	var util = new app.utils.specialUtility();
 ```
 
-Options
+Arguments
 -----------
 
-the `options` object accepts two properties:
+> ### Path
+> A standard path to a given directory to import. This parameter is optional and defaults to null
 
-> **preserve_filenames**: A boolean value instructing require_tree to preserve the filename in the package path structure. The default value is `false`
+> ### Options
+> The `options` object accepts these properties:
 
-> **locals**: A user defined JS Object that will be made avialable to loaded modules
+>> **locals**: A user defined JS Object that will be made avialable to loaded modules
+
+>> **packages**: An arbitrary object or existing package structure from another require_tree instance
+
+>> **preserve_filenames**: A boolean value instructing require_tree to preserve the filename in the package path structure. The default value is `false`
+
+
+Methods
+-----------
+
+The following `methods` are accessable from both the returned `package` structure and the `module.parent.exports`
+
+
+> ### getTree(path) 
+> Returns a given `package` and it\'s descendants. Accepts both hash and path syntax
+
+> example:
+
+```
+	// from application scope
+	tree = require('require_tree').require_tree('lib');
+	console.log( tree.require_tree.getTree('models') );
+	
+	// from loaded module
+	console.log( module.parent.exports.getTree('models') );
+```
+
+
+> ### addTree(path)
+> Recursively loads a new directory structure into the `package` structure of the current scope
+
+> example:
+
+```
+	// from application scope
+	tree = require('require_tree').require_tree('lib');
+	tree.require_tree.addTree('otherLib');
+	
+	// from loaded module
+	module.parent.exports.addTree('otherLib');
+```
+
+> ### extendTree(object)
+> Merges a given `package` and it\'s descendants with the existing `package` structure. 
+
+> example:
+
+```
+	// from application scope
+	tree = require('require_tree').require_tree('lib');
+	eTree = require('require_tree').require_tree('lib2');
+	tree.require_tree.extendTree(eTree);
+	
+	// from loaded module
+	eTree = require('require_tree').require_tree('lib2');
+	module.parent.exports.extendTree(eTree);
+```
+
+> ### removeTree(path)
+> Removes a given `package` and it\'s descendants from the `package` strucure. Accepts both hash and path syntax. 
+
+> *Note*: This will not remove loaded Modules from the Module Cache.
+
+> example:
+
+```
+	// from application scope
+	tree = require('require_tree').require_tree('lib');
+	tree.require_tree.removeTree('models');
+	
+	// from loaded module
+	module.parent.exports.removeTree('models');
+```
 
 
 Passing Data
 -----------
 
-By passing a JS Object to the `locals` param of the`options` object, you can set that Object for access from `module.parent.exports.locals` in your loaded Module's scope.
+By passing a JS Object to the `locals` param of the`options` object, you can set that Object for access from `module.parent.exports.locals` in your loaded Module\'s scope.
 
-index.js:
+> index.js:
+
 ```
-var myMods = require_tree('lib', {locals:{"myArray":[1,2,3,4]}});
+	var myMods = require_tree("lib", {locals:{"myArray":[1,2,3,4]}});
 ``` 
 
-lib/myMod.js:
+> lib/myMod.js:
+
 ```
- var passedArray = module.parent.exports.locals.myArray;
- console.log(passedArray);
+	var passedArray = module.parent.exports.locals.myArray;
+	console.log(passedArray);
 ```
 
-*Note*: If you make nested `require_tree` calls  you will need to explicitely pass the `module.parent.exports.locals` and `module.parent.exports.packages` objects to the `locals` param of the options object for the nested call.
-See the `Options` section above.
+Nesting `require_tree` Calls
+-----------
 
+Making nested `require_tree` calls from within loaded Modules will create a new `require_tree` instance and Module Scope with a new package structure.
+Use the `packages` params of the `options` argument to pass in an exising object or `package` structure to `inherit` from. 
+
+> example:
+
+```
+	(function(global)
+	{
+		// use require_tree to load a structure into a new scope
+		// note that we pass in the packages object in the options for the new sub-tree
+		global.config = require('require_tree').require_tree( '../subtree', {packages:{module.parent.exports.getPath('.')}});
+		
+		// our new tree will have inherited the parent require_tree packages
+		console.log( global.config );
+	})(exports);
+```
 
 Building Data Structures
 -----------
@@ -83,60 +175,103 @@ Building Data Structures
 This functionality allows you to create multiple index and data files to selectively build complex JSON data sets from static files.
 
 ```
-- conf/
-	- condition_1/
-		- index.js
-	- condition_2/
-		- index.js
-- lib/
-	- config.js
-- index.js
+	- conf/
+		- condition_1/
+			- index.js
+		- condition_2/
+			- index.js
+	- lib/
+		- config.js
+	- index.js
 ```
 
 In the above diagram, we see a `configure.js` file and a `conf` structure.
 The intent here is to have build a config file based on the user environment much as we would build an application config using a `configure` script
 
-lib/config.js
+> lib/config.js
+
 ```
-(function(global)
-{
-	// attempt to get passed data from locals Object
-	var conditionValue = module.parent.exports.locals.condition || 2;
-	// use require_tree to load a given structure -- note that we pass in the locals object in the options for the new sub-tree
-	global.config = require('require_tree').require_tree( '../conf/condition_' +  conditionValue, {locals{module.parent.exports.locals}});
-})(exports);
+	(function(global)
+	{
+		// attempt to get passed data from locals Object
+		var conditionValue = module.parent.exports.locals.condition || 1;
+		// use require_tree to load a given structure into the current scope
+		module.parent.exports.addTree( '../conf/condition_' +  conditionValue);
+	})(exports);
 ```
 
-index.js:
+> index.js:
+
 ```
-config = require_tree("lib", {locals:{"condition":2}});
-// config will now contain the dynmically generated JS object structure
-console.log(config);
+	config = require_tree("lib", {locals:{"condition":2}});
+	
+	// config will now contain the dynmically generated JS object structure
+	console.log(config);
 ```
 
-Accessing the Package Structure From Loaded Modules
+Accessing the Package Structure
 -----------
 
 While `require_tree` returns the loaded package Structure to the caller, it can be very useful to be aware of the Package Structure from within a loaded module
-`require_tree` exports the packages as `exports.packages` and can be accessed in the same manner as `locals` described above. 
+`require_tree` exports the packages as `exports.packages` and includes a `require_tree` package containing the exported methods listed in the`Methods` section above. 
 
-Try using the `module.parent.exports.packages` hash instead of `require` or further `require_tree` calls.
+> ### From the Application Scope
 
-example:
+> example:
+
 ```
-(function(global)
-{
-	var otherObjectRef = module.parent.exports.packages.path.to.other.Object;
-	global.myModule = function() {
+		var tree = require('require_tree').require_tree('path/to/dir');
+		
+		// using the `module.parent.exports.getTree` method
+		var otherObjectRef = tree.getTree('path.to.other.Object');
 		this.myRefInstance = new otherObjectRef();
-	}
-})(exports)
+		
+		// add another directory structure to the current package
+		tree.addTree('path/to/new/dir');
+		// access the new tree
+		console.log( tree.getTree('dir') );
+		
+		// remove a directory structure to the current package
+		tree.removeTree('dir/subtree');
+		// access the updated tree
+		console.log( tree.getTree('dir') );
 
+		// remove a directory structure to the current package
+		tree.extendTree({dir:{newSubTree:{val1:"value1", val2:"value2"}}});
+		// tree 'dir' will now have 'newSubTree' nested
+		console.log( tree.getTree('dir') );
 ```
 
-*Note*: Each call to `require_tree` creates a new Module Scope, so any 'sub-trees' created will not be able to access the containing `require_tree` scope.
-To get around this and allow dynamically loaded subtrees to access loaded packages and data, put your current `module.parent.exports.locals` and `module.parent.exports.packages` hashes into the `locals` param of the `options` hash.
-Review the `Passing Data` section above for more info.
+> ### From Loaded Modules
+
+> example:
+
+```
+	(function(global)
+	{
+		// using the `module.parent.exports.getTree` method
+		var otherObjectRef = module.parent.exports.getTree('path.to.other.Object');
+		global.myModule = function() {
+			this.myRefInstance = new otherObjectRef();
+		}
+		
+		// add another directory structure to the current package
+		module.parent.exports.addTree('path/to/new/dir');
+		// access the new tree
+		console.log( module.parent.exports.getTree('dir') )
+		
+		// remove a directory structure to the current package
+		module.parent.exports.removeTree('dir/subtree');
+		// access the updated tree
+		console.log( module.parent.exports.getTree('dir') );
+
+		// remove a directory structure to the current package
+		module.parent.exports.extendTree({dir:{newSubTree:{val1:"value1", val2:"value2"}}});
+		// tree 'dir' will now have 'newSubTree' nested
+		console.log( module.parent.exports.getTree('dir') );
+	})(exports)
+
+```
 
 
 What Next?

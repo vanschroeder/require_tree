@@ -1,5 +1,5 @@
 (function(global) {
-	global.ConditionTwo = function() {
+	global.ConditionTwoClass = function() {
 		return "CONDITION2";
 	};
 })(exports);

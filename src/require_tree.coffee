@@ -17,10 +17,13 @@ exports.require_tree = (uPath, options={})->
         for x of o
           obj[x] = o[x]
     obj
-  # the root path to the package we are importing -- we use this to filter
-  _root = uPath.split(path.sep).join path.sep
+  # a local version of dirname thatwill replace path '.' with and empty string for internal use
+  dirname = (p)->
+    (path.dirname p).replace /^\.+$/, ''
+  # clean up the uPath and set as the root path to the package we are importing -- we will use this to filter
+  _root = (uPath = path.normalize uPath ?= '.').split(path.sep).join path.sep
   # Our packages object that we will build and return 
-  module.exports.packages = packages = require_tree:{}
+  module.exports.packages = packages = extend options.packages || {}, require_tree:{}
   # returns the path parts as an array
   parsePath = (p)-> p.replace(new RegExp("^\\.?(\\#{path.sep})"),'').split path.sep
   # returns a path woth the _root filtered out
@@ -69,7 +72,7 @@ exports.require_tree = (uPath, options={})->
             # detect path formatting -- default is to ditch the filenames
             if !options.preserve_filenames
               # composite this Package (FYI: will join all.json and .js file contents into one package item)
-              o = extend (getPackage initial(pwd.split path.sep).join path.sep), require fs.realpathSync "#{file}"
+              o = extend (getPackage dirname pwd), require fs.realpathSync "#{file}"
             else
               # then we keep file names in the package path structure
               if name.match /^index+/
@@ -79,7 +82,7 @@ exports.require_tree = (uPath, options={})->
                 o = extend o, r = require fs.realpathSync "#{file}" 
               else
                 # we will append a new Package for each unique file name (excluding ext)
-                o = if (o = getPackage initial(pwd.split path.sep).join path.sep)? then o else appendPackage (parsePath pwd).join path.sep
+                o = if (o = getPackage dirname pwd)? then o else appendPackage (parsePath pwd).join path.sep
                 # add the module or JSON structure to the current Package
                 o[name.split('.').shift()] = extend o[name.split('.').shift()] || {}, require fs.realpathSync "#{file}"
           catch e
@@ -88,8 +91,8 @@ exports.require_tree = (uPath, options={})->
     true
   # packages getPackage method for consumptions by caller
   packages.require_tree.getPackage = 
-  # exports getPackage for loaded module consumptions
-  exports.getPackage = (p)=>
+  # exports getTree for loaded module consumptions
+  exports.getTree = (p)=>
     getPackage "#{(p ?= '.').replace /\./, path.sep}"
   # packages addTree method for consumptions by caller
   packages.require_tree.addTree =
@@ -103,6 +106,11 @@ exports.require_tree = (uPath, options={})->
       return exports.packages = packages
     _root = _oR
     return false
+  # packages extendTree method for consumptions by caller
+  packages.require_tree.extendTree =
+  # exports extendTree for loaded module consumptions
+  exports.extendTree = (obj) =>
+    packages = extend packages, obj
   # packages removeTree method for consumptions by caller
   packages.require_tree.removeTree =
   # exports removeTree for loaded module consumptions

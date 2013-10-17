@@ -84,3 +84,7 @@ describe 'require_Tree Test Suite', ->
   it 'should Remove a path', =>
     @tree.require_tree.removeTree './subtree'
     @tree.should.not.have.property 'subtree'
+  it 'should take an empty path', =>
+    @tree = require_tree null, packages:@tree
+  it 'should merge packages set in options', =>
+    @tree.should.have.property 'foo'
