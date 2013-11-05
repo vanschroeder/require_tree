@@ -72,7 +72,12 @@ exports.require_tree = (uPath, options={})->
             # detect path formatting -- default is to ditch the filenames
             if !options.preserve_filenames
               # composite this Package (FYI: will join all.json and .js file contents into one package item)
-              o = extend (getPackage dirname pwd), require fs.realpathSync "#{file}"
+              if typeof (x = require fs.realpathSync "#{file}") != 'function'
+                o = extend (getPackage dirname pwd), x
+              else
+                # if we have orphaned functions, we will ignore the directive and append the function with the filename
+                (m = {})[name.split('.').shift()] = x
+                o = extend (getPackage dirname pwd), m
             else
               # then we keep file names in the package path structure
               if name.match /^index+/
@@ -84,7 +89,8 @@ exports.require_tree = (uPath, options={})->
                 # we will append a new Package for each unique file name (excluding ext)
                 o = if (o = getPackage dirname pwd)? then o else appendPackage (parsePath pwd).join path.sep
                 # add the module or JSON structure to the current Package
-                o[name.split('.').shift()] = extend o[name.split('.').shift()] || {}, require fs.realpathSync "#{file}"
+                v = extend o[name.split('.').shift()] || {}, require fs.realpathSync "#{file}"
+                o[name.split('.').shift()] = v
           catch e
             throw new Error e
             return false

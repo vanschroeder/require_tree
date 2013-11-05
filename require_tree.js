@@ -68,7 +68,7 @@ exports.require_tree = function(uPath, options) {
     return pkg;
   };
   walker = function(dir) {
-    var e, file, list, name, o, p, pwd, r, stat, _i, _len;
+    var e, file, list, m, name, o, p, pwd, r, stat, v, x, _i, _len;
 
     if ((list = fs.readdirSync(dir)).length) {
       for (_i = 0, _len = list.length; _i < _len; _i++) {
@@ -94,14 +94,20 @@ exports.require_tree = function(uPath, options) {
           }
           try {
             if (!options.preserve_filenames) {
-              o = extend(getPackage(dirname(pwd)), require(fs.realpathSync("" + file)));
+              if (typeof (x = require(fs.realpathSync("" + file))) !== 'function') {
+                o = extend(getPackage(dirname(pwd)), x);
+              } else {
+                (m = {})[name.split('.').shift()] = x;
+                o = extend(getPackage(dirname(pwd)), m);
+              }
             } else {
               if (name.match(/^index+/)) {
                 o = getPackage(((p = parsePath(pwd)).slice(0, p.length - (p.length > 1 ? 1 : 0))).join(path.sep));
                 o = extend(o, r = require(fs.realpathSync("" + file)));
               } else {
                 o = (o = getPackage(dirname(pwd))) != null ? o : appendPackage((parsePath(pwd)).join(path.sep));
-                o[name.split('.').shift()] = extend(o[name.split('.').shift()] || {}, require(fs.realpathSync("" + file)));
+                v = extend(o[name.split('.').shift()] || {}, require(fs.realpathSync("" + file)));
+                o[name.split('.').shift()] = v;
               }
             }
           } catch (_error) {

@@ -58,6 +58,7 @@ Arguments
 > **packages**: An arbitrary object or existing package structure from another require_tree instance
 
 > **preserve_filenames**: A boolean value instructing require_tree to preserve the filename in the package path structure. The default value is `false`
+> *note*: This directive will be temporarily ignored and the filename used to name an unnamed function to support sloppy `module.exports = function() {...}` usage
 
 
 Methods
