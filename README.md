@@ -276,8 +276,6 @@ console.log( tree.getTree('dir') );
 
 ```
 
-
-
 What Next?
 -----------
 
