@@ -13,6 +13,7 @@ describe 'require_Tree Test Suite', ->
     @conditions = conditions
   it 'should have Objects', =>
     @foo.aClass.should.be.a 'Function'
+    @foo.NoName.should.be.a 'Function'
     @bar.aClass.should.be.a 'Function'
     @bar.bClass.should.be.a 'Function'
     @aClass.should.be.a 'Function'
