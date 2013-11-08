@@ -55,7 +55,7 @@ Arguments
 
 > **locals**: A user defined JS Object that will be made avialable to loaded modules
 
-> **packages**: An arbitrary object or existing package structure from another require_tree instance
+> **packages**: An arbitrary object or existing package structure from another require_tree instance that will serve as the basis for the current require_tree instance
 
 > **preserve_filenames**: A boolean value instructing require_tree to preserve the filename in the package path structure. The default value is `false`
 > *note*: This directive will be temporarily ignored and the filename used to name an unnamed function to support sloppy `module.exports = function() {...}` usage
@@ -131,6 +131,71 @@ tree.require_tree.removeTree('models');
 // from loaded module
 module.parent.exports.removeTree('models');
 ```
+
+**on(name, callback, context)**
+
+Adds an event handler for a given event
+
+*example:*
+
+```
+// -- will print contents of package to console when loading has completed
+(rTree = require('require_tree')).on( 'completed', function(data) {
+	console.log(data);
+});
+	
+rTree.require_tree('./lib');  
+```
+
+**off(name, callback, context)**
+
+Removes an event handler for a given event
+
+*example:*
+
+```
+
+(rTree = require('require_tree')).on( 'completed', function(data) {
+	// -- will remove the event handler for further completed events.
+	data.require_tree.off('completed');
+	console.log(data);
+});
+	
+rTree.require_tree('./lib');  
+```
+
+**trigger(name, ...)**
+
+Dispatches an event to all listeners
+
+*example:*
+
+```
+
+(rTree = require('require_tree')).on( 'myEvent', function(data) {
+	console.log(data);
+});
+
+// -- calling trigger will cause the above listener to capture and event
+rTree.trigger('myEvent', {data:"hello world"});
+```
+
+Events
+-----------
+ Event listeners may be added and removed using the `on` and `off` methods listed above
+ the following events are dispatched by require_tree
+ 
+**completed**
+
+Triggered when `require_tree` has been called directly, passes package structure as it's data payload
+
+**changed**
+
+Triggered when `addTree`, `removeTree` or `extendTree` have been called with the following payload:
+
+> *packages*: the complete package structure in it's present state
+> *added*: If present, will contain the tree that has been added. Passed on addTree or extendTree operations
+> *removed*: If present will contain the tree that has been removed. Only passed on removeTree operations
 
 
 Passing Data

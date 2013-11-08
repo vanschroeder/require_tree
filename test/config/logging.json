@@ -1,0 +1,23 @@
+{
+  "development": {
+    "level": "debug",
+    "colorize": true,
+    "timestamp": false,
+    "handleExceptions": true,
+    "prettyPrint": true
+  },
+  "test": {
+    "level": "info",
+    "colorize": true,
+    "timestamp": false,
+    "handleExceptions": true,
+    "prettyPrint": true
+  },
+  "production": {
+    "level": "error",
+    "colorize": true,
+    "timestamp": true,
+    "handleExceptions": true,
+    "prettyPrint": false
+  }
+}

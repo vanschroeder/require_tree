@@ -1,0 +1,8 @@
+{
+  "env":"development",
+  "port":{
+    "development": 3000,
+    "test": 3000,
+    "production":80
+  }
+}

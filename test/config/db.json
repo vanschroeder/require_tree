@@ -1,0 +1,20 @@
+{
+  "development": {
+    "username": "devUser",
+    "password": "passwrd",
+    "host": "localhost",
+    "database": "myApp"
+  },
+  "test": {
+    "username": "testUser",
+    "password": "passwrd",
+    "host": "localhost",
+    "database": "myApp"
+  },
+  "production": {
+    "username": "prodUser",
+    "password": "passwrd",
+    "host": "localhost",
+    "database": "myApp"
+  }
+}
