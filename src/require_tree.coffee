@@ -29,7 +29,6 @@ Events =
         @_events[name] = retain = []
         if (callback || context)
           for evt of events
-            console.log evt
             retain.push evt if (callback && callback != evt.callback) && (callback != evt.callback._callback) || (context && context != evt.context)
         delete @_events[name] if !retain.length     
     @
@@ -73,7 +72,7 @@ triggerEvents = (events, args)->
         (ev = events[i]).callback.call(ev.ctx) 
       return
     when 1
-      while (++i < l) 
+      while (++i < l)
         (ev = events[i]).callback.call(ev.ctx, a1) 
       return
     when 2
@@ -93,7 +92,7 @@ Events.bind   = Events.on
 Events.unbind = Events.off
 #### require_tree(uPath, [options])
 #> Loads given path hierarchy into package structure
-exports.require_tree = (uPath, options={})->
+exports.require_tree = (uPath=null, options={})->
   'use strict'
   # define locals for access by loaded Child Modules
   module.exports.locals = options.locals || {}
@@ -109,13 +108,15 @@ exports.require_tree = (uPath, options={})->
           obj[x] = o[x]
     obj
   extend @, Events
+  @on 'completed', options.completed, @ if options.completed? and typeof options.completed == 'function'
+  @on 'changed', options.changed, @ if options.changed? and typeof options.changed == 'function'
   # a local version of dirname thatwill replace path '.' with and empty string for internal use
   dirname = (p)->
     (path.dirname p).replace /^\.+$/, ''
   # clean up the uPath and set as the root path to the package we are importing -- we will use this to filter
-  _root = (uPath = path.normalize uPath ?= '.').split(path.sep).join path.sep
+  _root = (path.normalize uPath || '.').split(path.sep).join path.sep
   # Our packages object that we will build and return 
-  module.exports.packages = packages = extend options.packages || {}, require_tree:{}
+  module.exports.packages = packages = extend options.packages || {}, require_tree: (extend {}, Events)
   # returns the path parts as an array
   parsePath = (p)-> p.replace(new RegExp("^\\.?(\\#{path.sep})"),'').split path.sep
   # returns a path woth the _root filtered out
@@ -190,19 +191,19 @@ exports.require_tree = (uPath, options={})->
   # packages getPackage method for consumptions by caller
   packages.require_tree.getPackage = 
   # exports getTree for loaded module consumptions
-  exports.getTree = (p)=>
+  exports.getTree = (p)->
     getPackage "#{(p ?= '.').replace /\./, path.sep}"
   # packages addTree method for consumptions by caller
   packages.require_tree.addTree =
   # exports addTree for loaded module consumptions
-  exports.addTree = (p) =>
+  exports.addTree = (p) ->
     _oR = _root
     _root = initial(b = p.split path.sep).join path.sep
     packages[_ns = b] ?= (packages[_ns = b] = {})
     if walker p
       _root = _oR
       # dispatches changed event with added tree
-      @trigger 'changed', {packages:packages, added:packages[b] || {}}
+      Events.trigger.call @, 'changed', {packages:packages, added:packages[b] || {}}
       # exports current packages
       return exports.packages = packages
     _root = _oR
@@ -210,32 +211,27 @@ exports.require_tree = (uPath, options={})->
   # packages extendTree method for consumptions by caller
   packages.require_tree.extendTree =
   # exports extendTree for loaded module consumptions
-  exports.extendTree = (obj) =>
+  exports.extendTree = (obj) ->
     packages = extend packages, obj
     # dispatches changed event with added tree
-    @trigger 'changed', {packages:packages, added:obj}
+    Events.trigger.call @, 'changed', {packages:packages, added:obj}
   # packages removeTree method for consumptions by caller
   packages.require_tree.removeTree =
   # exports removeTree for loaded module consumptions
-  exports.removeTree = (p) =>
+  exports.removeTree = (p) ->
     pkg = getPackage initial(s=p.replace(/\./g,path.sep).split path.sep).join path.sep
     try
       if (rm = pkg[s[s.length-1]])?
         # deletes the found tree
         delete pkg[s[s.length-1]]
         # dispatches changed event with removed tree
-        @trigger 'changed', {packages:packages, removed:rm}
+        Events.trigger.call @, 'changed', {packages:packages, removed:rm}
     catch e
       throw new Error e
-  # exports Event.on for module consumption
-  packages.require_tree.on  = exports.on  = @on
-  # exports Event.off for module consumption
-  packages.require_tree.off = exports.off = @off
-  # exports Event.trigger for module consumption
-  packages.require_tree.trigger = exports.trigger = @trigger
+  extend packages.require_tree, Events
   # walk the given path if uPath is set
   walker uPath, null, null if uPath?
-  # dispatches 'complete' event
-  @trigger 'completed', packages
+  # dispatches 'completed' event
+  Events.trigger.call this, 'completed', packages
   # returns the packaged contents
   packages

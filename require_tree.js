@@ -44,7 +44,6 @@ Events = {
         this._events[name] = retain = [];
         if (callback || context) {
           for (evt in events) {
-            console.log(evt);
             if ((callback && callback !== evt.callback) && (callback !== evt.callback._callback) || (context && context !== evt.context)) {
               retain.push(evt);
             }
@@ -149,6 +148,9 @@ exports.require_tree = function(uPath, options) {
   var appendPackage, dirname, extend, fs, getPackage, getPwd, initial, packages, parsePath, path, walker, _root,
     _this = this;
 
+  if (uPath == null) {
+    uPath = null;
+  }
   if (options == null) {
     options = {};
   }
@@ -174,12 +176,18 @@ exports.require_tree = function(uPath, options) {
     return obj;
   };
   extend(this, Events);
+  if ((options.completed != null) && typeof options.completed === 'function') {
+    this.on('completed', options.completed, this);
+  }
+  if ((options.changed != null) && typeof options.changed === 'function') {
+    this.on('changed', options.changed, this);
+  }
   dirname = function(p) {
     return (path.dirname(p)).replace(/^\.+$/, '');
   };
-  _root = (uPath = path.normalize(uPath != null ? uPath : uPath = '.')).split(path.sep).join(path.sep);
+  _root = (path.normalize(uPath || '.')).split(path.sep).join(path.sep);
   module.exports.packages = packages = extend(options.packages || {}, {
-    require_tree: {}
+    require_tree: extend({}, Events)
   });
   parsePath = function(p) {
     return p.replace(new RegExp("^\\.?(\\" + path.sep + ")"), '').split(path.sep);
@@ -280,7 +288,7 @@ exports.require_tree = function(uPath, options) {
     }
     if (walker(p)) {
       _root = _oR;
-      _this.trigger('changed', {
+      Events.trigger.call(this, 'changed', {
         packages: packages,
         added: packages[b] || {}
       });
@@ -291,7 +299,7 @@ exports.require_tree = function(uPath, options) {
   };
   packages.require_tree.extendTree = exports.extendTree = function(obj) {
     packages = extend(packages, obj);
-    return _this.trigger('changed', {
+    return Events.trigger.call(this, 'changed', {
       packages: packages,
       added: obj
     });
@@ -303,7 +311,7 @@ exports.require_tree = function(uPath, options) {
     try {
       if ((rm = pkg[s[s.length - 1]]) != null) {
         delete pkg[s[s.length - 1]];
-        return _this.trigger('changed', {
+        return Events.trigger.call(this, 'changed', {
           packages: packages,
           removed: rm
         });
@@ -313,12 +321,10 @@ exports.require_tree = function(uPath, options) {
       throw new Error(e);
     }
   };
-  packages.require_tree.on = exports.on = this.on;
-  packages.require_tree.off = exports.off = this.off;
-  packages.require_tree.trigger = exports.trigger = this.trigger;
+  extend(packages.require_tree, Events);
   if (uPath != null) {
     walker(uPath, null, null);
   }
-  this.trigger('completed', packages);
+  Events.trigger.call(this, 'completed', packages);
   return packages;
 };

@@ -98,9 +98,10 @@ describe 'require_Tree Test Suite', ->
   it 'should merge packages set in options', =>
     @tree.should.have.property 'foo'
   it 'should dispatch a completed Event',(done) =>
-    (@rT = require('../src/require_tree')).on 'completed', (pkg)->
+    @rT = require('../src/require_tree')
+    @rT.require_tree "./test/lib", completed: ((pkg)=> 
       done() if pkg.should.be.a 'object'
-    @rT.require_tree( "./test/lib" )
+    )
   it 'should dispatch a changed Event on extendTree',(done) =>
     (@rT).on 'changed', (pkg)=>
       (@rT).off 'changed'
@@ -116,7 +117,7 @@ describe 'require_Tree Test Suite', ->
       (@rT).off 'changed'
       done() if pkg.should.have.property('removed') && pkg.removed.should.have.property('value')
     @rT.removeTree 'condition_1'
-  it 'should dispatch an arbitrar Event',(done) =>
+  it 'should dispatch an arbitrary Event',(done) =>
     (@rT).on 'arbitrary', (pkg)=>
       (@rT).off 'arbitrary'
       done() if pkg.should.have.property('data') && pkg.data.should.have.property('value')
