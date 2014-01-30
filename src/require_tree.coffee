@@ -166,7 +166,8 @@ exports.require_tree = (uPath=null, options={})->
             if !options.preserve_filenames
               # composite this Package (FYI: will join all.json and .js file contents into one package item)
               if typeof (x = require fs.realpathSync "#{file}") != 'function'
-                o = extend (getPackage dirname pwd), x
+                # added kludge to fix addTree calls from completely unrelated paths
+                o = extend (getPackage(dirname pwd) || getPackage(dirname(pwd).split(path.sep).pop())), x
               else
                 # if we have orphaned functions, we will ignore the directive and append the function with the filename
                 (m = {})[name.split('.').shift()] = x

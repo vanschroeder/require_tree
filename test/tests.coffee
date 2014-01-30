@@ -122,3 +122,4 @@ describe 'require_Tree Test Suite', ->
       (@rT).off 'arbitrary'
       done() if pkg.should.have.property('data') && pkg.data.should.have.property('value')
     @rT.trigger 'arbitrary', data:value:"arbitrary"
+    

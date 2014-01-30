@@ -250,7 +250,7 @@ exports.require_tree = function(uPath, options) {
           try {
             if (!options.preserve_filenames) {
               if (typeof (x = require(fs.realpathSync("" + file))) !== 'function') {
-                o = extend(getPackage(dirname(pwd)), x);
+                o = extend(getPackage(dirname(pwd)) || getPackage(dirname(pwd).split(path.sep).pop()), x);
               } else {
                 (m = {})[name.split('.').shift()] = x;
                 o = extend(getPackage(dirname(pwd)), m);
