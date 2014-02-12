@@ -223,7 +223,7 @@ exports.require_tree = function(uPath, options) {
     return pkg;
   };
   walker = function(dir) {
-    var e, file, list, m, name, o, p, pwd, r, stat, v, x, _i, _len;
+    var e, file, list, m, n, name, o, p, pwd, r, stat, v, x, _i, _len;
 
     if ((list = fs.readdirSync(dir)).length) {
       for (_i = 0, _len = list.length; _i < _len; _i++) {
@@ -252,7 +252,7 @@ exports.require_tree = function(uPath, options) {
               if (typeof (x = require(fs.realpathSync("" + file))) !== 'function' && !(x instanceof Array)) {
                 o = extend(getPackage(dirname(pwd)) || getPackage(dirname(pwd).split(path.sep).pop()), x);
               } else {
-                (m = {})[name.split('.').shift()] = x;
+                (m = {})[(n = name.split('.').shift()) === 'index' ? _root.split(path.sep).pop() : n] = x;
                 o = extend(getPackage(dirname(pwd)), m);
               }
             } else {
