@@ -76,6 +76,16 @@ describe 'require_Tree Test Suite', ->
     (new bar.a.aClass).should.be.a 'Object'
     (new bar.b.bClass).should.be.a 'Object'
     (new foo.a.aClass).should.be.a 'Object'
+  it 'should preserve arrays', =>
+    {arrays, filename, anArray, nested} = require('../src/require_tree').require_tree "./test/arrays"
+    arrays.should.be.a 'Array'
+    filename.should.be.a 'Array'
+    anArray.should.be.a 'Array'
+    nested.anArray.should.be.a 'Array'
+    arrays[0].value.should.be.a 'Array'
+    filename[0].value.should.be.a 'Array'
+    anArray[0].value.should.be.a 'Array'
+    nested.anArray[0].value.should.be.a 'Array'
   it 'should respond to boolean directive value', =>
     {foo, bar, conditions, a,multiIndex} = require('../src/require_tree').require_tree "./test/lib", preserve_filenames:false
     foo.should.not.have.property 'a'

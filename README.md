@@ -340,9 +340,3 @@ console.log( tree.getTree('dir') );
 })(exports)
 
 ```
-
-What Next?
------------
-
-With recursive Module loading the ability to pass data and to create programmaticly defined structures on the fly, it seems only logical to add in module defined flow control and introspection,
-However, what those would mean for performance, usability and whether or not such features are appropriate for a module loader need some mulling over. So feel free to chime in with ideas, suggestions or pull requests.

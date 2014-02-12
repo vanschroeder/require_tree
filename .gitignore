@@ -8,6 +8,10 @@
 *.so
 .sass-cache
 
+# Generated Files #
+###################
+README.html
+
 # Rakefile #
 ############
 Rakefile

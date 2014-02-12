@@ -193,7 +193,7 @@ exports.require_tree = function(uPath, options) {
     return p.replace(new RegExp("^\\.?(\\" + path.sep + ")"), '').split(path.sep);
   };
   getPwd = function(p) {
-    return p.replace(new RegExp("^(\\.\\" + path.sep + ")?" + ((parsePath(_root)).join('\\' + path.sep)) + "\\" + path.sep), '');
+    return p.replace(new RegExp("^(\\.\\" + path.sep + ")?" + (parsePath(_root).join('\\' + path.sep)) + "+\\" + path.sep + "?"), '');
   };
   appendPackage = function(p) {
     var d, pkg, s, _i, _name, _ref, _ref1;
@@ -249,7 +249,7 @@ exports.require_tree = function(uPath, options) {
           }
           try {
             if (!options.preserve_filenames) {
-              if (typeof (x = require(fs.realpathSync("" + file))) !== 'function') {
+              if (typeof (x = require(fs.realpathSync("" + file))) !== 'function' && !(x instanceof Array)) {
                 o = extend(getPackage(dirname(pwd)) || getPackage(dirname(pwd).split(path.sep).pop()), x);
               } else {
                 (m = {})[name.split('.').shift()] = x;
