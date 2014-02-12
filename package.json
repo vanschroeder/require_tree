@@ -3,7 +3,7 @@
   "name": "require_tree",
   "description": "Recursive Package like Module and JSON Loading for Nodejs",
   "keywords": ["recursive", "require", "tree", "model", "filesystem", "js", "json", "import", "package", "module", "loading", "export"],
-  "version": "0.6.7",
+  "version": "0.6.8",
   "main":"require_tree.js",
   "licenses": [
     {
