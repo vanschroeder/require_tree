@@ -121,8 +121,7 @@ exports.require_tree = (uPath=null, options={})->
   parsePath = (p)-> p.replace(new RegExp("^\\.?(\\#{path.sep})"),'').split path.sep
   # returns a path woth the _root filtered out
   getPwd = (p)->
-    # p.replace new RegExp("^(\\.\\#{path.sep})?#{(parsePath _root).join '\\'+path.sep}\\#{path.sep}"), ''
-    p.replace new RegExp("^(\\.\\#{path.sep})?#{parsePath(_root).join '\\'+path.sep}+\\#{path.sep}?"), ''#).split(path.sep).shift()
+    p.replace new RegExp("^(\\.\\#{path.sep})?#{(parsePath _root).join '\\'+path.sep}\\#{path.sep}"), ''
   # adds a given path to the Package
   appendPackage = (p)->
     pkg = packages
@@ -168,15 +167,10 @@ exports.require_tree = (uPath=null, options={})->
               # composite this Package (FYI: will join all.json and .js file contents into one package item)
               if typeof (x = require fs.realpathSync "#{file}") != 'function' and !(x instanceof Array)
                 # added kludge to fix addTree calls from completely unrelated paths
-                # if x instanceof Object  
                 o = extend (getPackage(dirname pwd) || getPackage(dirname(pwd).split(path.sep).pop())), x
-                # else
-                  # console.log "dirname: #{dirname pwd}"
-                  # o = [] if !((o = getPackage(dirname pwd) || getPackage dirname(pwd).split(path.sep).pop() ) instanceof Array)
-                  # o.push x
               else
                 # if we have orphaned functions, we will ignore the directive and append the function with the filename
-                (m = {})[if (n = name.split('.').shift()) == 'index' then _root.split(path.sep).pop() else n] = x
+                (m = {})[if (n = name.split('.').shift()) == 'index' then (if (d=dirname(pwd).split(path.sep).pop()) == '' then _root.split(path.sep).pop() else d)  else n] = x
                 o = extend (getPackage dirname pwd), m
             else
               # then we keep file names in the package path structure
