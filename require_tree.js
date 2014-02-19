@@ -139,7 +139,7 @@ Events.bind = Events.on;
 Events.unbind = Events.off;
 
 exports.require_tree = function(uPath, options) {
-  var appendPackage, dirname, extend, fs, getPackage, getPwd, initial, packages, parsePath, path, walker, _root;
+  var appendPackage, dirname, e, extend, fs, getPackage, getPwd, initial, packages, parsePath, path, walker, _root;
   if (uPath == null) {
     uPath = null;
   }
@@ -269,19 +269,24 @@ exports.require_tree = function(uPath, options) {
     return getPackage("" + ((p != null ? p : p = '.').replace(/\./, path.sep)));
   };
   packages.require_tree.addTree = exports.addTree = function(p) {
-    var b, _name, _ns, _oR;
+    var b, e, _name, _ns, _oR;
     _oR = _root;
     _root = initial(b = p.split(path.sep)).join(path.sep);
     if (packages[_name = _ns = b] == null) {
       packages[_name] = (packages[_ns = b] = {});
     }
-    if (walker(p)) {
-      _root = _oR;
-      Events.trigger.call(this, 'changed', {
-        packages: packages,
-        added: packages[b] || {}
-      });
-      return exports.packages = packages;
+    try {
+      if (walker(p)) {
+        _root = _oR;
+        Events.trigger.call(this, 'changed', {
+          packages: packages,
+          added: packages[b] || {}
+        });
+        return exports.packages = packages;
+      }
+    } catch (_error) {
+      e = _error;
+      throw new Error(e);
     }
     _root = _oR;
     return false;
@@ -310,8 +315,13 @@ exports.require_tree = function(uPath, options) {
     }
   };
   extend(packages.require_tree, Events);
-  if (uPath != null) {
-    walker(uPath, null, null);
+  try {
+    if (uPath != null) {
+      walker(uPath, null, null);
+    }
+  } catch (_error) {
+    e = _error;
+    throw new Error(e);
   }
   Events.trigger.call(this, 'completed', packages);
   return packages;

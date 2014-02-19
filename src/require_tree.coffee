@@ -201,12 +201,15 @@ exports.require_tree = (uPath=null, options={})->
     _oR = _root
     _root = initial(b = p.split path.sep).join path.sep
     packages[_ns = b] ?= (packages[_ns = b] = {})
-    if walker p
-      _root = _oR
-      # dispatches changed event with added tree
-      Events.trigger.call @, 'changed', {packages:packages, added:packages[b] || {}}
-      # exports current packages
-      return exports.packages = packages
+    try
+      if walker p
+        _root = _oR
+        # dispatches changed event with added tree
+        Events.trigger.call @, 'changed', {packages:packages, added:packages[b] || {}}
+        # exports current packages
+        return exports.packages = packages
+    catch e
+      throw new Error e
     _root = _oR
     false
   # packages extendTree method for consumptions by caller
@@ -231,7 +234,10 @@ exports.require_tree = (uPath=null, options={})->
       throw new Error e
   extend packages.require_tree, Events
   # walk the given path if uPath is set
-  walker uPath, null, null if uPath?
+  try
+    walker uPath, null, null if uPath?
+  catch e
+    throw new Error e
   # dispatches 'completed' event
   Events.trigger.call this, 'completed', packages
   # returns the packaged contents
